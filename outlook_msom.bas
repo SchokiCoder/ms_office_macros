@@ -1,3 +1,4 @@
+Attribute VB_Name = "outlook_msom"
 '    ms_office_macros
 '    Copyright (C) 2022  Andy Frank Schoknecht
 '
@@ -27,7 +28,7 @@ Sub forward_new_task()
     Set fwd = Application.ActiveExplorer.Selection.Item(1).Forward
     
     ' add recipent
-    fwd.Recipients.Add (Modul2.FORWARD_TASK_RECIPENT)
+    fwd.Recipients.Add (outlook_msom_cfg.FORWARD_TASK_RECIPENT)
     
     ' find last filled line
     Dim i As Integer
@@ -72,40 +73,47 @@ Sub forward_new_task()
     i = Len(fwd.Body) - 1
     
     Do While i > 0
-        If Mid(fwd.Body, (Len(fwd.Body) - i), 1) = Chr(10) Then
+        If Mid(fwd.Body, i, 1) = Chr(10) Then
             line_count = line_count + 1
             
-            If line_count >= Modul2.FORWARD_TASK_TAIL Then
+            If line_count >= outlook_msom_cfg.FORWARD_TASK_TAIL Then
                 Exit Do
             End If
         End If
+        
+        i = i - 1
     Loop
     
     ' remove tail
-    fwd.Body = Mid(fwd.Body, 1, (Len(fwd.Body) - i))
+    fwd.Body = Mid(fwd.Body, 1, i)
+    
+    ' prepare signature
+    ' MS won't allow me to just access the users saved signatures, so now it is a const in the config...
+    ' MS can't express a linebreak as a const char, so now it gets replaced at runtime...
+    ' @MS: Stop using backslashes for paths and start using them for goddamn escape sequences!
+    Dim sign As String
+    
+    sign = outlook_msom_cfg.FORWARD_TASK_SIGNATURE
+    sign = Replace(sign, outlook_msom_cfg.LINEBREAK, Chr(10))
     
     ' add signature
-    
+    fwd.Body = fwd.Body & Chr(10) & sign
     
     ' show message
     fwd.GetInspector.Display
     
 End Sub
 
-Sub export_field_of_msgs()
+
+Sub export_dir_msgs_field()
     Dim dir As Outlook.Folder
-    Dim i As Integer
-    Dim msg As Outlook.MailItem
-    Dim field As String
-    Dim field_list() As String
-    Dim cells() As String
     
-    ' NOT DONE, exit
+    ' IN DEVELOPMENT, exit
     MsgBox "This macro is not done yet"
     Exit Sub
     
-    ' goto db success msgs dir
-    Set dir = Application.Session.Folders.Item(Modul2.USER).Folders.Item(Modul2.DIR_EXPORT_EXCEL)
+    ' goto target dir
+    Set dir = Application.Session.Folders.Item(outlook_msom_cfg.EXPORT_USER).Folders.Item(outlook_msom_cfg.EXPORT_DIR)
     
     ' if dir is empty, msgbox and exit sub
     If dir.Items.Count = 0 Then
@@ -114,11 +122,16 @@ Sub export_field_of_msgs()
     End If
     
     ' iterate mails
+    Dim i As Integer
+    Dim msg As Outlook.MailItem
+    Dim field As String
+    Dim field_list() As String
+    
     Set msg = dir.Items.GetFirst
     
     For i = 0 To 1 'dir.Items.Count <--- UNCOMMENT ---
-        ' save db name to array
-        field = Split(msg.Body, " ")(1)
+        ' save field to array
+        field = Split(msg.Body, outlook_msom_cfg.EXPORT_DELIM)(outlook_msom_cfg.EXPORT_FIELD)
         
         ReDim Preserve field_list(i + 1)
         field_list(i) = field
@@ -127,16 +140,9 @@ Sub export_field_of_msgs()
         Set msg = dir.Items.GetNext
     Next
     
-    
-    
-    ' Currently halted because there is no way to insert the data into the xlsx-file
-    ' or to have any kind of IO to this file.
-    ' I would need an extension for that...
-    
-    
-    
     ' write csv file
-    'ReDim cells(LBound(field_list), 0)
+    'Dim cells() As String
+    'ReDim cells(Len(field_list), 0)
     
     'For i = 0 To LBound(field_list)
     '    cells(i, 0) = field_list(i)
@@ -145,7 +151,9 @@ Sub export_field_of_msgs()
     'write_csv "export.csv", cells
     'Function write_csv(filepath As String, cells() As String)
     'End
+    
+    
+    
+    ' NOW, write an Excel macro that imports it all and checks for validity etc...
 End Sub
-
-
 
