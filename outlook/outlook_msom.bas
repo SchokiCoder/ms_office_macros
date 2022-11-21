@@ -108,10 +108,6 @@ End Sub
 Sub export_dir_msgs_field()
     Dim dir As Outlook.Folder
     
-    ' IN DEVELOPMENT, exit
-    MsgBox "This macro is not done yet"
-    Exit Sub
-    
     ' goto target dir
     Set dir = Application.Session.Folders.Item(outlook_msom_cfg.EXPORT_USER).Folders.Item(outlook_msom_cfg.EXPORT_DIR)
     
@@ -127,33 +123,23 @@ Sub export_dir_msgs_field()
     Dim field As String
     Dim field_list() As String
     
-    Set msg = dir.Items.GetFirst
     
-    For i = 0 To 1 'dir.Items.Count <--- UNCOMMENT ---
-        ' save field to array
+    ' Why i am about to use (i + 1) as index:
+    ' Outlook.Folder.Items.Item(index) <- index begins at 1
+    ' MS allows VBA writers to choose at which num the array begins.
+    ' MS loves guesswork for different interfaces.
+    
+    
+    ' for all msgs: get msg and field, save field to list
+    For i = 0 To (dir.Items.Count - 1)
+        Set msg = dir.Items.Item(i + 1)
         field = Split(msg.Body, outlook_msom_cfg.EXPORT_DELIM)(outlook_msom_cfg.EXPORT_FIELD)
         
         ReDim Preserve field_list(i + 1)
         field_list(i) = field
-        
-        ' next
-        Set msg = dir.Items.GetNext
     Next
     
     ' write csv file
-    'Dim cells() As String
-    'ReDim cells(Len(field_list), 0)
-    
-    'For i = 0 To LBound(field_list)
-    '    cells(i, 0) = field_list(i)
-    'Next
-    
-    'write_csv "export.csv", cells
-    'Function write_csv(filepath As String, cells() As String)
-    'End
-    
-    
-    
-    ' NOW, write an Excel macro that imports it all and checks for validity etc...
+    outlook_msom_lib.write_list_csv outlook_msom_cfg.EXPORT_PATH, field_list
 End Sub
 
