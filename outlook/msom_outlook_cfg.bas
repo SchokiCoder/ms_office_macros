@@ -1,4 +1,4 @@
-Attribute VB_Name = "outlook_msom_cfg"
+Attribute VB_Name = "msom_outlook_cfg"
 ' MS Office Macros
 '       ____    ____    _   _   ____   _    ____
 '      /  __|  /    \  | \ | | |  __| | |  /  __|
@@ -12,7 +12,7 @@ Attribute VB_Name = "outlook_msom_cfg"
 Public Const LINEBREAK = "\n"
 
 'forward task
-Public Const FORWARD_TASK_RECIPENT = "recipent@mail.com"
+Public Const FORWARD_TASK_RECIPIENT = "recipient@mail.com"
 Public Const FORWARD_TASK_TAIL = 2
 Public Const FORWARD_TASK_SIGNATURE = "Thanks\nand have fun"
 

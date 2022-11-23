@@ -1,4 +1,4 @@
-Attribute VB_Name = "outlook_msom_lib"
+Attribute VB_Name = "msom_outlook_lib"
 '    ms_office_macros
 '    Copyright (C) 2022  Andy Frank Schoknecht
 '

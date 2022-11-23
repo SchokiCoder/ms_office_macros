@@ -1,4 +1,4 @@
-Attribute VB_Name = "outlook_msom"
+Attribute VB_Name = "msom_outlook"
 '    ms_office_macros
 '    Copyright (C) 2022  Andy Frank Schoknecht
 '
@@ -28,7 +28,7 @@ Sub forward_new_task()
     Set fwd = Application.ActiveExplorer.Selection.Item(1).Forward
     
     ' add recipent
-    fwd.Recipients.Add (outlook_msom_cfg.FORWARD_TASK_RECIPENT)
+    fwd.Recipients.Add (msom_outlook_cfg.FORWARD_TASK_RECIPIENT)
     
     ' find last filled line
     Dim i As Integer
@@ -76,7 +76,7 @@ Sub forward_new_task()
         If Mid(fwd.Body, i, 1) = Chr(10) Then
             line_count = line_count + 1
             
-            If line_count >= outlook_msom_cfg.FORWARD_TASK_TAIL Then
+            If line_count >= msom_outlook_cfg.FORWARD_TASK_TAIL Then
                 Exit Do
             End If
         End If
@@ -93,8 +93,8 @@ Sub forward_new_task()
     ' @MS: Stop using backslashes for paths and start using them for goddamn escape sequences!
     Dim sign As String
     
-    sign = outlook_msom_cfg.FORWARD_TASK_SIGNATURE
-    sign = Replace(sign, outlook_msom_cfg.LINEBREAK, Chr(10))
+    sign = msom_outlook_cfg.FORWARD_TASK_SIGNATURE
+    sign = Replace(sign, msom_outlook_cfg.LINEBREAK, Chr(10))
     
     ' add signature
     fwd.Body = fwd.Body & Chr(10) & sign
@@ -109,7 +109,7 @@ Sub export_dir_msgs_field()
     Dim dir As Outlook.Folder
     
     ' goto target dir
-    Set dir = Application.Session.Folders.Item(outlook_msom_cfg.EXPORT_USER).Folders.Item(outlook_msom_cfg.EXPORT_DIR)
+    Set dir = Application.Session.Folders.Item(msom_outlook_cfg.EXPORT_USER).Folders.Item(msom_outlook_cfg.EXPORT_DIR)
     
     ' if dir is empty, msgbox and exit sub
     If dir.Items.Count = 0 Then
@@ -133,13 +133,13 @@ Sub export_dir_msgs_field()
     ' for all msgs: get msg and field, save field to list
     For i = 0 To (dir.Items.Count - 1)
         Set msg = dir.Items.Item(i + 1)
-        field = Split(msg.Body, outlook_msom_cfg.EXPORT_DELIM)(outlook_msom_cfg.EXPORT_FIELD)
+        field = Split(msg.Body, msom_outlook_cfg.EXPORT_DELIM)(msom_outlook_cfg.EXPORT_FIELD)
         
         ReDim Preserve field_list(i + 1)
         field_list(i) = field
     Next
     
     ' write csv file
-    outlook_msom_lib.write_list_csv outlook_msom_cfg.EXPORT_PATH, field_list
+    outlook_msom_lib.write_list_csv msom_outlook_cfg.EXPORT_PATH, field_list
 End Sub
 

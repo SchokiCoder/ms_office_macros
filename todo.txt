@@ -1,0 +1,6 @@
+{
+	-ms office import can, by		.
+	 certain characters in cfg,
+	 be caused to generate funny
+	 strings in the imported cfg
+}
