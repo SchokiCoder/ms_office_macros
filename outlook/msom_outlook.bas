@@ -140,6 +140,6 @@ Sub export_dir_msgs_field()
     Next
     
     ' write csv file
-    outlook_msom_lib.write_list_csv msom_outlook_cfg.EXPORT_PATH, field_list
+    msom_outlook_lib.write_list_csv msom_outlook_cfg.EXPORT_PATH, field_list
 End Sub
 

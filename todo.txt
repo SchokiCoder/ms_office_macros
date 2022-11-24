@@ -1,4 +1,7 @@
 {
+	-ms excel import eliminate		.
+	 redundancies
+	
 	-ms office import can, by		.
 	 certain characters in cfg,
 	 be caused to generate funny

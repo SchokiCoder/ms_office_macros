@@ -1,3 +1,4 @@
+Attribute VB_Name = "msom_excel"
 '    ms_office_macros
 '    Copyright (C) 2022  Andy Frank Schoknecht
 '
@@ -15,39 +16,16 @@
 '    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-' hands on your
-'       ____    ____    _   _   ____   _    ____
-'      /  __|  /    \  | \ | | |  __| | |  /  __|
-'     |  /    |  /\  | |  \| | | |_   | | | |
-'  -- | |     | |  | | |   | | |  _|  | | | |  _  --
-'     |  \__  |  \/  | | |\  | | |    | | | |_| |
-'      \____|  \____/  |_| \_| |_|    |_|  \____/
-'
-
-
-Const IMPORT_PATH = "export.csv"
-
-' horizontal and one row only, format = begin:end
-Const IMPORT_HEADER_RANGE = "B4:H4"
-
-Const IMPORT_CUR_DAY_OFFSET = -1
-
-Const IMPORT_LAST_ROW = "230"
-
-Const IMPORT_ORIENTATION_COL = "A"
-
-Const IMPORT_VALUE = "io"
-
-
-' don't touch that darn
-'       __    ____    _   _   ____     ____   ____
-'      / _|  /    \  | | | | |  _ \   /  __| |  __|
-'     / /   |  /\  | | | | | | |_) | |  /    | |_
-'  -- \ \   | |  | | | | | | |    /  | |     |  _| --
-'    _/ /   |  \/  | | \_/ | | |\ \  |  \__  | |__
-'   |__/     \____/   \___/  |_| \_\  \____| |____|
-'
-
+Function str_arr_unique(str_arr() As String)
+    Dim seen_vals() As String
+    Dim i As Integer
+    
+    For i = LBound(str_arr) To UBound(str_arr)
+        ' if value already seen, remove from arr
+    Next
+    
+    str_arr_unique = str_arr
+End Function
 
 Sub import_dir_msgs_field()
     Dim i As Integer
@@ -56,11 +34,11 @@ Sub import_dir_msgs_field()
     Dim target_day
     Dim sheet As Excel.Worksheet
     
-    target_day = Date + IMPORT_CUR_DAY_OFFSET
+    target_day = Date + msom_excel_cfg.IMPORT_CUR_DAY_OFFSET
     
     ' in header, find cur date with configured offset
     Set sheet = Application.ActiveSheet
-    Set header = sheet.Range(IMPORT_HEADER_RANGE)
+    Set header = sheet.Range(msom_excel_cfg.IMPORT_HEADER_RANGE)
     
     For i = 1 To header.Count
         Set header_item = header.Item(1, i)
@@ -74,27 +52,31 @@ Sub import_dir_msgs_field()
     
     ' get active column
     rng_a = Split(header_item.Address, "$")(1) & "1"
-    rng_b = Mid(rng_a, 1, 1) & IMPORT_LAST_ROW
+    rng_b = Mid(rng_a, 1, 1) & msom_excel_cfg.IMPORT_LAST_ROW
     
     Set active_col = sheet.Range(rng_a & ":" & rng_b)
     
     ' get orientation column
-    rng_a = IMPORT_ORIENTATION_COL & Mid(rng_a, 2)
-    rng_b = IMPORT_ORIENTATION_COL & Mid(rng_b, 2)
+    rng_a = msom_excel_cfg.IMPORT_ORIENTATION_COL & Mid(rng_a, 2)
+    rng_b = msom_excel_cfg.IMPORT_ORIENTATION_COL & Mid(rng_b, 2)
     
     Set orient_col = sheet.Range(rng_a & ":" & rng_b)
     
     Dim line As String
     Dim found_cell As Excel.Range
+    Dim answer As Integer
     
     ' open import file
-    Open IMPORT_PATH For Input As #1
+    Open msom_excel_cfg.IMPORT_PATH For Input As #1
     
     ' I am about to use the goto statement because MS can't afford a continue-like keyword.
     ' I know, that i could rewrite it in a way that it doesn't need that.
     ' However i think it is amusing to see how MS just fails all over the place.
     
     ' read lines
+	read into str arr and then use my unique function
+	then go over each line
+	
     Do While Not EOF(1)
 MSCouldntAffordContinueKeyword:
         Input #1, line
@@ -107,8 +89,20 @@ MSCouldntAffordContinueKeyword:
             GoTo MSCouldntAffordContinueKeyword
         End If
         
-        ' set cell in active column
-        active_col.Item(found_cell.Row).Value = IMPORT_VALUE
+        ' if cell in active column is already filled
+        If active_col.Item(found_cell.Row).Value <> "" Then
+            ' ask user if overwrite
+            active_col.Item(found_cell.Row).Select
+            answer = MsgBox("The cell " & active_col.Item(found_cell.Row).Address & " contains '" & active_col.Item(found_cell.Row).Value & "'" & Chr(10) & "Do you want to overwrite?", vbQuestion + vbYesNo)
+            
+            If answer = vbYes Then
+                ' set cell in active column
+                active_col.Item(found_cell.Row).Value = msom_excel_cfg.IMPORT_VALUE
+            End If
+        Else
+            ' set cell in active column
+            active_col.Item(found_cell.Row).Value = msom_excel_cfg.IMPORT_VALUE
+        End If
     Loop
     
     ' close
