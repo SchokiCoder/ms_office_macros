@@ -16,15 +16,58 @@ Attribute VB_Name = "msom_excel"
 '    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-Function str_arr_unique(str_arr() As String)
-    Dim seen_vals() As String
+Function str_arr_remove_at(arr() As String, ByVal index As Integer)
     Dim i As Integer
+    Dim arr_cpy() As String
     
-    For i = LBound(str_arr) To UBound(str_arr)
-        ' if value already seen, remove from arr
+    arr_cpy = arr
+    
+    For i = index To (UBound(arr_cpy) - 1)
+        arr_cpy(i) = arr_cpy(i + 1)
+    Next i
+    
+    ReDim Preserve arr_cpy(UBound(arr_cpy) - 1)
+    
+    str_arr_remove_at = arr_cpy
+End Function
+
+Function str_arr_unique(arr() As String)
+    Dim seen_vals() As String
+    Dim i, cmp As Integer
+    
+    ReDim Preserve seen_vals(0)
+
+    For i = LBound(arr) To UBound(arr)
+        ' if value already seen, skip
+        For cmp = LBound(seen_vals) To UBound(seen_vals)
+            If seen_vals(cmp) = arr(i) Then
+                GoTo MSsux_no_continue
+            End If
+        Next
+        
+        ' add value to seen vals
+        ReDim Preserve seen_vals(UBound(seen_vals) + 1)
+        seen_vals(UBound(seen_vals) - 1) = arr(i)
+MSsux_no_continue:
     Next
     
-    str_arr_unique = str_arr
+    str_arr_unique = seen_vals
+End Function
+
+Function str_arr_noempty(arr() As String)
+    Dim i As Integer
+    Dim arr_cpy() As String
+    
+    arr_cpy = arr
+
+    For i = LBound(arr_cpy) To UBound(arr_cpy)
+        ' if value empty, remove from arr
+        If Len(arr_cpy(i)) = 0 Then
+            arr_cpy = str_arr_remove_at(arr_cpy, i)
+        End If
+    Next
+    
+    str_arr_noempty = arr_cpy
 End Function
 
 Sub import_dir_msgs_field()
@@ -41,7 +84,7 @@ Sub import_dir_msgs_field()
     Set header = sheet.Range(msom_excel_cfg.IMPORT_HEADER_RANGE)
     
     For i = 1 To header.Count
-        Set header_item = header.Item(1, i)
+        Set header_item = header.item(1, i)
         If header_item = target_day Then
             Exit For
         End If
@@ -63,49 +106,59 @@ Sub import_dir_msgs_field()
     Set orient_col = sheet.Range(rng_a & ":" & rng_b)
     
     Dim line As String
-    Dim found_cell As Excel.Range
-    Dim answer As Integer
+    Dim content() As String
+    
+    ' MS allows you to basically create an empty vector, without them knowing that it is empty...
+    ReDim Preserve content(0)
+    ' let that sink in
     
     ' open import file
     Open msom_excel_cfg.IMPORT_PATH For Input As #1
     
-    ' I am about to use the goto statement because MS can't afford a continue-like keyword.
-    ' I know, that i could rewrite it in a way that it doesn't need that.
-    ' However i think it is amusing to see how MS just fails all over the place.
-    
     ' read lines
-	read into str arr and then use my unique function
-	then go over each line
-	
     Do While Not EOF(1)
-MSCouldntAffordContinueKeyword:
         Input #1, line
+        ReDim Preserve content(UBound(content) + 1)
+        content(UBound(content) - 1) = line
+    Loop
+    
+    ' close file
+    Close #1
+    
+    ' eliminate redundancies, remove empty lines
+    content = str_arr_unique(content)
+    content = str_arr_noempty(content)
+    
+    ' import
+    Dim found_cell As Excel.Range
+    Dim answer As Integer
         
+    For i = LBound(content) To UBound(content)
         ' orient_col: find cell that matches field
-        Set found_cell = orient_col.Find(line)
+        Set found_cell = orient_col.Find(content(i))
         
         ' if not found, skip
         If found_cell Is Nothing Then
-            GoTo MSCouldntAffordContinueKeyword
+            GoTo MSsux_no_continue
         End If
         
         ' if cell in active column is already filled
-        If active_col.Item(found_cell.Row).Value <> "" Then
+        If active_col.item(found_cell.Row).Value <> "" Then
             ' ask user if overwrite
-            active_col.Item(found_cell.Row).Select
-            answer = MsgBox("The cell " & active_col.Item(found_cell.Row).Address & " contains '" & active_col.Item(found_cell.Row).Value & "'" & Chr(10) & "Do you want to overwrite?", vbQuestion + vbYesNo)
+            active_col.item(found_cell.Row).Select
+            answer = MsgBox("The cell " & active_col.item(found_cell.Row).Address & " contains '" & active_col.item(found_cell.Row).Value & "'" & Chr(10) & "Do you want to overwrite?", vbQuestion + vbYesNoCancel)
             
             If answer = vbYes Then
                 ' set cell in active column
-                active_col.Item(found_cell.Row).Value = msom_excel_cfg.IMPORT_VALUE
+                active_col.item(found_cell.Row).Value = msom_excel_cfg.IMPORT_VALUE
+            ElseIf answer = vbCancel Then
+                Exit For
             End If
         Else
             ' set cell in active column
-            active_col.Item(found_cell.Row).Value = msom_excel_cfg.IMPORT_VALUE
+            active_col.item(found_cell.Row).Value = msom_excel_cfg.IMPORT_VALUE
         End If
-    Loop
-    
-    ' close
-    Close #1
+MSsux_no_continue:
+    Next
 End Sub
 
