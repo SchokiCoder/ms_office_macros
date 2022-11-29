@@ -16,6 +16,24 @@ Attribute VB_Name = "msom_outlook"
 '    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+Function write_list_csv(path As String, list() As String)
+    Dim i As Integer
+
+    ' if file already exists, delete
+    If Len(dir(path)) <> 0 Then
+        Kill path
+    End If
+    
+    ' write
+    Open path For Append As #1
+    
+    For i = LBound(list) To (UBound(list) - 1)
+        Write #1, list(i)
+    Next
+    
+    Close #1
+End Function
+
 Sub forward_new_task()
     Dim fwd As Outlook.MailItem
     
@@ -104,7 +122,6 @@ Sub forward_new_task()
     
 End Sub
 
-
 Sub export_dir_msgs_field()
     Dim dir As Outlook.Folder
     
@@ -140,6 +157,6 @@ Sub export_dir_msgs_field()
     Next
     
     ' write csv file
-    msom_outlook_lib.write_list_csv msom_outlook_cfg.EXPORT_PATH, field_list
+    write_list_csv msom_outlook_cfg.EXPORT_PATH, field_list
 End Sub
 
