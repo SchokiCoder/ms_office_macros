@@ -15,61 +15,6 @@ Attribute VB_Name = "msom_excel"
 '    You should have received a copy of the GNU General Public License
 '    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-Function str_arr_remove_at(arr() As String, ByVal index As Integer)
-    Dim i As Integer
-    Dim arr_cpy() As String
-    
-    arr_cpy = arr
-    
-    For i = index To (UBound(arr_cpy) - 1)
-        arr_cpy(i) = arr_cpy(i + 1)
-    Next i
-    
-    ReDim Preserve arr_cpy(UBound(arr_cpy) - 1)
-    
-    str_arr_remove_at = arr_cpy
-End Function
-
-Function str_arr_unique(arr() As String)
-    Dim seen_vals() As String
-    Dim i, cmp As Integer
-    
-    ReDim Preserve seen_vals(0)
-
-    For i = LBound(arr) To UBound(arr)
-        ' if value already seen, skip
-        For cmp = LBound(seen_vals) To UBound(seen_vals)
-            If seen_vals(cmp) = arr(i) Then
-                GoTo MSsux_no_continue
-            End If
-        Next
-        
-        ' add value to seen vals
-        ReDim Preserve seen_vals(UBound(seen_vals) + 1)
-        seen_vals(UBound(seen_vals) - 1) = arr(i)
-MSsux_no_continue:
-    Next
-    
-    str_arr_unique = seen_vals
-End Function
-
-Function str_arr_noempty(arr() As String)
-    Dim i As Integer
-    Dim arr_cpy() As String
-    
-    arr_cpy = arr
-
-    For i = LBound(arr_cpy) To UBound(arr_cpy)
-        ' if value empty, remove from arr
-        If Len(arr_cpy(i)) = 0 Then
-            arr_cpy = str_arr_remove_at(arr_cpy, i)
-        End If
-    Next
-    
-    str_arr_noempty = arr_cpy
-End Function
-
 Sub flag_col_cells_by_import_list()
     Dim i As Integer
     Dim header As Excel.Range
@@ -141,8 +86,8 @@ Sub flag_col_cells_by_import_list()
     Close #1
     
     ' eliminate redundancies, remove empty lines
-    content = str_arr_unique(content)
-    content = str_arr_noempty(content)
+    content = msom_lib.str_arr_unique(content)
+    content = msom_lib.str_arr_noempty(content)
     
     ' import
     Dim found_cell As Excel.Range
