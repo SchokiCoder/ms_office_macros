@@ -1,3 +1,10 @@
 {
+        -outlook::forward_tasks {
+                -mark as read                                   .
+                -display -> send                                .
+                -move to directory                              .
+                -apply macro to all selected items              .
+                -rename sub                                     .
+        }
 }
 
