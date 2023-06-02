@@ -19,4 +19,4 @@ Public Const EXPORT_DIR = "MyDir"
 Public Const EXPORT_DELIM = " "
 Public Const EXPORT_FIELD = 1
 Public Const EXPORT_PATH = "export.csv"
-
+Public Const EXPORT_MSG_FILTERIN = "Pinkie, Duck!"

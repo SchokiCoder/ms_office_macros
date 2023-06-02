@@ -91,7 +91,7 @@ Sub export_dir_msgs_field()
     Set dir = Application.Session.Folders.Item(msom_outlook_cfg.EXPORT_USER).Folders.Item(msom_outlook_cfg.EXPORT_DIR)
     
     ' if dir is empty, msgbox and exit sub
-    If dir.Items.Count = 0 Then
+    If dir.Items.count = 0 Then
         MsgBox "No messages found"
         Exit Sub
     End If
@@ -101,6 +101,7 @@ Sub export_dir_msgs_field()
     Dim msg As Outlook.MailItem
     Dim field As String
     Dim field_list() As String
+    Dim field_list_count As Integer
     
     
     ' Why i am about to use (i + 1) as index:
@@ -110,16 +111,21 @@ Sub export_dir_msgs_field()
     ' Just pick a damn starting number, like a sane lang-designer would
     
     
-    ' for all msgs: get msg and field, save field to list
-    For i = 0 To (dir.Items.Count - 1)
+    field_list_count = 0
+    
+    ' for all msgs: check if message contains key
+    For i = 0 To (dir.Items.count - 1)
         Set msg = dir.Items.Item(i + 1)
-        field = Split(msg.Body, msom_outlook_cfg.EXPORT_DELIM)(msom_outlook_cfg.EXPORT_FIELD)
-        
-        ReDim Preserve field_list(i + 1)
-        field_list(i) = field
+        If InStr(msg.Body, msom_outlook_cfg.EXPORT_MSG_FILTERIN) <> 0 Then
+            
+            ' get field and save it to list
+            field_list_count = field_list_count + 1
+            field = Split(msg.Body, msom_outlook_cfg.EXPORT_DELIM)(msom_outlook_cfg.EXPORT_FIELD)
+            ReDim Preserve field_list(field_list_count)
+            field_list(field_list_count - 1) = field
+        End If
     Next
     
     ' write csv file
     write_list_csv msom_outlook_cfg.EXPORT_PATH, field_list
 End Sub
-
